@@ -81,3 +81,15 @@ body.leaving .bar, body.leaving main, body.leaving .foot { opacity: 0; }
 .card-win img { width: min(100%, 230px); height: auto; filter: drop-shadow(0 24px 34px rgb(0 0 0 / .55)) drop-shadow(0 0 26px rgb(255 214 150 / .18)); }
 .card-win figcaption { font-family: var(--serif); font-style: italic; font-size: 1.3rem; color: var(--gold); text-shadow: none; }
 @media (max-width: 820px) { .card-win img { width: 150px; } }
+
+/* text-only panels get a lit window beside them */
+.panel.with-win { position: relative; padding-right: calc(clamp(150px, 17vw, 230px) + clamp(70px, 8vw, 120px)); min-height: calc(clamp(150px, 17vw, 230px) * 1.6 + 80px); align-content: center; }
+.panel.with-win > .side-win { position: absolute; right: clamp(34px, 4vw, 60px); top: 50%; width: clamp(150px, 17vw, 230px); margin: 0; transform: translateY(-50%); }
+.side-win img { width: 100%; height: auto; filter: drop-shadow(0 24px 34px rgb(0 0 0 / .55)) drop-shadow(0 0 26px rgb(255 214 150 / .18)); }
+.js .side-win[data-fade] { transform: translateY(calc(-50% + 22px)); }
+.js .side-win[data-fade].in { transform: translateY(-50%); }
+@media (max-width: 760px) {
+  .panel.with-win { padding-right: clamp(34px, 5vw, 64px); min-height: 0; }
+  .panel.with-win > .side-win { position: static; transform: none; width: 130px; margin-bottom: 10px; order: -1; }
+  .js .side-win[data-fade], .js .side-win[data-fade].in { transform: none; }
+}
