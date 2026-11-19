@@ -1,0 +1,50 @@
+/* light version: pre-rendered glass, CSS-only reveals */
+.glass-bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: #14101a var(--glass-l) center / cover no-repeat;
+  opacity: 0; transition: opacity .9s ease;
+}
+@media (orientation: portrait) { .glass-bg { background-image: var(--glass-p); } }
+.glass-bg.ready { opacity: 1; }
+.glass-glow, .glint, .bars { display: none; }
+
+/* reveals: opacity + transform only (cheap for every browser) */
+.js [data-fade], .js [data-split], .js [data-stagger] > * {
+  opacity: 0; transform: translateY(22px);
+  transition: opacity .8s ease, transform .9s cubic-bezier(.2, .7, .2, 1);
+}
+.js [data-fade].in, .js [data-split].in, .js [data-stagger] > .in { opacity: 1; transform: none; }
+.js [data-stagger] > :nth-child(2) { transition-delay: .08s; }
+.js [data-stagger] > :nth-child(3) { transition-delay: .16s; }
+.js [data-stagger] > :nth-child(4) { transition-delay: .24s; }
+.js [data-stagger] > :nth-child(5) { transition-delay: .32s; }
+.js [data-stagger] > :nth-child(6) { transition-delay: .4s; }
+
+/* page change */
+main, .bar, .foot { animation: page-in .5s ease both; }
+@keyframes page-in { from { opacity: 0; } }
+.bar, main, .foot { transition: opacity .3s ease; }
+body.leaving .bar, body.leaving main, body.leaving .foot { opacity: 0; }
+
+/* book leaves */
+.leaf.on.fwd { animation: leaf-fwd .5s ease both; }
+.leaf.on.back { animation: leaf-back .5s ease both; }
+@keyframes leaf-fwd { from { opacity: 0; transform: translateX(36px); } }
+@keyframes leaf-back { from { opacity: 0; transform: translateX(-36px); } }
+.gloss-out.flash > * { animation: gloss-in .5s ease both; }
+@keyframes gloss-in { from { opacity: 0; transform: translateY(10px); } }
+
+/* sections that used to be pinned now simply flow */
+.steps-stage { gap: 56px; }
+.step { padding: 10px 0; }
+[data-lines] { background: rgb(6 5 4 / .82); }
+.lstage { -webkit-mask: none; mask: none; }
+.lrow { opacity: 1; height: auto; padding: 10px 0; border-top: 1px solid rgb(236 226 205 / .08); }
+.lrow .m { white-space: normal; }
+.hwrap { overflow-x: auto; padding-bottom: 12px; }
+.card { position: relative; top: auto; min-height: 0; margin-bottom: 28px; }
+.deck { padding-bottom: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .js [data-fade], .js [data-split], .js [data-stagger] > * { opacity: 1; transform: none; transition: none; }
+}
