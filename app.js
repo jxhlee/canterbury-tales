@@ -47,15 +47,15 @@
   var glow = layer('canvas', 'glass-glow');
   var cv = layer('canvas', 'glass-bg');
   var ctx = cv.getContext('2d');
-  var W, H, DPR, pieces = [], lw = 6;
+  var W, H, DPR, pieces = [], lw = 6, off = null, OD = 1;
 
   function build() {
-    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    DPR = Math.min(window.devicePixelRatio || 1, innerWidth < 760 ? 1.25 : 1.5);
     W = innerWidth; H = innerHeight;
     cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     var s = G.sprites(W, H, P, here.length * 131 + 7, DPR);
-    pieces = s.pieces; lw = s.lw;
+    pieces = s.pieces; lw = s.lw; off = s.canvas; OD = s.dpr;
     // glass-only mask so the cursor light falls on glass, not on the lead
     var m = document.createElement('canvas'); m.width = Math.round(W / 2); m.height = Math.round(H / 2);
     var g = m.getContext('2d'); g.scale(.5, .5); g.fillStyle = '#fff';
@@ -84,45 +84,85 @@
     pieces.forEach(function (p) { p.d = Math.hypot(p.cx - ox, p.cy - oy); far = Math.max(far, p.d); });
     pieces.forEach(function (p) { p.d = p.d / far; });
   }
-  function drawPiece(p, t) {
-    if (t <= 0) return;
-    if (t >= 1) { ctx.drawImage(p.sp, p.x, p.y, p.w, p.h); return; }
+  var acc = document.createElement('canvas'), actx = acc.getContext('2d');
+  function shape(c, p) {
+    c.beginPath();
+    for (var i = 0; i < p.poly.length; i++) i ? c.lineTo(p.poly[i][0], p.poly[i][1]) : c.moveTo(p.poly[i][0], p.poly[i][1]);
+    c.closePath();
+  }
+  function blit(c, p) {
+    var sx = Math.max(0, p.x), sy = Math.max(0, p.y), ex = Math.min(W, p.x + p.w), ey = Math.min(H, p.y + p.h);
+    if (ex > sx && ey > sy) c.drawImage(off, sx * OD, sy * OD, (ex - sx) * OD, (ey - sy) * OD, sx, sy, ex - sx, ey - sy);
+  }
+  /* a piece in motion: lifted, turned a little, fading */
+  function drawMoving(p, t) {
     var e = 1 - Math.pow(1 - t, 3);
     ctx.save();
     ctx.globalAlpha = Math.min(1, t * 1.5);
     ctx.translate(p.cx, p.cy + (1 - e) * 22);
     ctx.rotate(p.rot * (1 - e));
     var s = .92 + .08 * e; ctx.scale(s, s);
-    ctx.drawImage(p.sp, p.x - p.cx, p.y - p.cy, p.w, p.h);
+    ctx.translate(-p.cx, -p.cy);
+    shape(ctx, p);
+    ctx.lineWidth = lw; ctx.strokeStyle = '#121010'; ctx.stroke();
+    ctx.clip(); blit(ctx, p);
     ctx.restore();
   }
-  function paint(state) {
-    ctx.clearRect(0, 0, W, H);
-    for (var i = 0; i < pieces.length; i++) drawPiece(pieces[i], state ? state(pieces[i]) : 1);
+  /* pieces at rest live in an accumulation layer, so each is stamped (or erased) only once */
+  function stamp(p, erase) {
+    actx.save(); shape(actx, p);
+    if (erase) { actx.clip(); actx.clearRect(p.x - 2, p.y - 2, p.w + 4, p.h + 4); }
+    else { actx.lineWidth = lw; actx.strokeStyle = '#121010'; actx.stroke(); actx.clip(); blit(actx, p); }
+    actx.restore();
   }
-  function run(total, state, after) {
-    var t0 = performance.now();
-    return new Promise(function (done) {
+  function paint() { ctx.clearRect(0, 0, W, H); ctx.drawImage(off, 0, 0, W, H); }
+  function run(total, tOf, settledOf, after) {
+    var t0 = performance.now(), finished = false;
+    return new Promise(function (resolve) {
+      function done() { if (!finished) { finished = true; resolve(); } }
+      // if the browser throttles animation frames, finish anyway
+      setTimeout(done, (total + 2.5) * 1000);
       (function frame(now) {
+        if (finished) return;
         var t = (now - t0) / 1000;
-        paint(function (p) { return state(p, t); });
+        for (var i = 0; i < pieces.length; i++) {
+          var p = pieces[i], k = tOf(p, t);
+          if (settledOf(p, k)) { if (!p._s) { p._s = true; stamp(p, p._erase); } }
+        }
+        ctx.clearRect(0, 0, W, H);
+        ctx.drawImage(acc, 0, 0, W, H);
+        for (var j = 0; j < pieces.length; j++) {
+          var q = pieces[j], kk = tOf(q, t);
+          if (kk > 0 && kk < 1) drawMoving(q, kk);
+        }
         if (after) after(t);
         if (t < total + .2) requestAnimationFrame(frame); else done();
       })(t0);
     });
   }
+  function freshAcc(full) {
+    acc.width = W; acc.height = H; actx.setTransform(1, 0, 0, 1, 0, 0);
+    actx.clearRect(0, 0, W, H);
+    if (full) actx.drawImage(off, 0, 0, W, H);
+  }
   function assemble(fx, fy, total, onHalf) {
     order(fx, fy);
+    freshAcc(false);
+    pieces.forEach(function (p) { p._s = false; p._erase = false; });
     var spread = total * .62, each = total * .38, half = false;
     return run(total, function (p, t) { return (t - p.d * spread - p.jit * .12) / each; },
+      function (p, k) { return k >= 1; },
       function (t) { if (!half && t > total * .45) { half = true; if (onHalf) onHalf(); } })
-      .then(function () { paint(); makeGlow(); document.body.classList.add('lit'); glassImage(); });
+      .then(function () { paint(); makeGlow(); document.body.classList.add('lit'); });
   }
   function disassemble(fx, fy, total) {
     order(fx, fy);
     document.body.classList.remove('lit');
+    freshAcc(true);
+    pieces.forEach(function (p) { p._s = false; p._erase = true; });
     var spread = total * .6, each = total * .4;
-    return run(total, function (p, t) { return 1 - (t - p.d * spread - p.jit * .1) / each; });
+    return run(total, function (p, t) { return 1 - (t - p.d * spread - p.jit * .1) / each; },
+      function (p, k) { return k < 1; });
   }
 
   build();

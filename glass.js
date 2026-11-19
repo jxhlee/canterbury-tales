@@ -326,9 +326,10 @@
     g.globalAlpha = 1;
     g.globalCompositeOperation = 'source-over';
     trace(g, poly, ox, oy);
-    if ('filter' in g) g.filter = 'blur(' + Math.max(3, Math.min(bw, bh) * .08).toFixed(1) + 'px)';
-    g.strokeStyle = 'rgba(40,24,10,.42)'; g.lineWidth = Math.max(8, Math.min(bw, bh) * .22); g.stroke();
-    if ('filter' in g) g.filter = 'none';
+    var ew = Math.max(8, Math.min(bw, bh) * .22);
+    g.strokeStyle = 'rgba(40,24,10,.16)'; g.lineWidth = ew; g.stroke();
+    g.lineWidth = ew * .55; g.stroke();
+    g.lineWidth = ew * .25; g.stroke();
     g.restore();
   }
   /* painted ornament, as glass painters traced it in brown-black enamel */
@@ -423,32 +424,35 @@
     return { items: items, r: r };
   }
 
-  /* render pieces into sprites (for animation) */
+  /* render the whole pane into ONE canvas; pieces keep only their outline for the animation */
   function sprites(W, H, P, seed, DPR) {
     var d = design(W, H, P, seed), r = d.r, lw = Math.max(5, Math.min(W, H) / 125), out = [];
     var L = P.lightAt || [.78, .2], lx = W * L[0], ly = H * L[1], far = Math.hypot(W, H) * .85;
+    var off = document.createElement('canvas');
+    off.width = Math.round(W * DPR); off.height = Math.round(H * DPR);
+    var g = off.getContext('2d');
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    g.fillStyle = '#121010'; g.fillRect(0, 0, W, H);
     d.items.forEach(function (it) {
       var poly = it.poly;
       var xs = poly.map(function (p) { return p[0]; }), ys = poly.map(function (p) { return p[1]; });
       var bx = Math.floor(Math.min.apply(null, xs) - lw), by = Math.floor(Math.min.apply(null, ys) - lw);
       var bw = Math.ceil(Math.max.apply(null, xs) + lw) - bx, bh = Math.ceil(Math.max.apply(null, ys) + lw) - by;
       if (bw < 3 || bh < 3 || bx > W + 50 || by > H + 50 || bx + bw < -50 || by + bh < -50) return;
-      var cnv = document.createElement('canvas');
-      cnv.width = Math.ceil(bw * DPR); cnv.height = Math.ceil(bh * DPR);
-      var g = cnv.getContext('2d'); g.setTransform(DPR, 0, 0, DPR, 0, 0);
       var c0 = centroid(poly), lum = Math.max(.15, 1 - Math.hypot(c0[0] - lx, c0[1] - ly) / far);
+      g.save(); g.translate(bx, by);
       paintGlass(g, poly, bx, by, it.col, bw, bh, r, lum, c0[0], c0[1], it.tag);
-      if (it.hole) { /* roundel ring */ g.beginPath(); g.arc(it.hole[0] - bx, it.hole[1] - by, it.hole[2], 0, 6.283); g.strokeStyle = '#0c0a08'; g.lineWidth = lw; g.stroke(); }
-      leadLine(g, poly, bx, by, lw);
-      var c = centroid(poly);
-      out.push({ sp: cnv, x: bx, y: by, w: bw, h: bh, cx: c[0], cy: c[1], poly: poly, rot: (r() - .5) * .12, jit: r() });
+      if (it.hole) { g.beginPath(); g.arc(it.hole[0] - bx, it.hole[1] - by, it.hole[2], 0, 6.283); g.strokeStyle = '#121010'; g.lineWidth = lw; g.stroke(); }
+      g.restore();
+      out.push({ x: bx, y: by, w: bw, h: bh, cx: c0[0], cy: c0[1], poly: poly, rot: (r() - .5) * .12, jit: r() });
     });
-    return { pieces: out, lw: lw };
+    out.forEach(function (p) { leadLine(g, p.poly, 0, 0, lw); });
+    return { pieces: out, lw: lw, canvas: off, dpr: DPR };
   }
 
   /* a single framed window drawn into a canvas (used for the tale windows) */
   function panel(cnv, P, seed) {
-    var DPR = Math.min(window.devicePixelRatio || 1, 2), W = cnv.clientWidth, H = cnv.clientHeight;
+    var DPR = 1, W = cnv.clientWidth, H = cnv.clientHeight;
     if (!W || !H) return;
     cnv.width = Math.round(W * DPR); cnv.height = Math.round(H * DPR);
     var g = cnv.getContext('2d'); g.setTransform(DPR, 0, 0, DPR, 0, 0);
