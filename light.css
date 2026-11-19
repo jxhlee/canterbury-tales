@@ -75,3 +75,9 @@ body.leaving .bar, body.leaving main, body.leaving .foot { opacity: 0; }
 @media (prefers-reduced-motion: reduce) {
   .js [data-fade], .js [data-split], .js [data-stagger] > * { opacity: 1; transform: none; transition: none; }
 }
+
+/* value / verse cards: a small lit window instead of a bare numeral */
+.card-win { margin: 0; display: grid; justify-items: center; gap: 12px; }
+.card-win img { width: min(100%, 230px); height: auto; filter: drop-shadow(0 24px 34px rgb(0 0 0 / .55)) drop-shadow(0 0 26px rgb(255 214 150 / .18)); }
+.card-win figcaption { font-family: var(--serif); font-style: italic; font-size: 1.3rem; color: var(--gold); text-shadow: none; }
+@media (max-width: 820px) { .card-win img { width: 150px; } }
