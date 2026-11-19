@@ -2,6 +2,7 @@
 (function () {
   'use strict';
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var touch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
   var HAS = !!(window.gsap && window.ScrollTrigger) && !reduce;
   var root = document.documentElement;
   var G = window.Glass;
@@ -50,12 +51,13 @@
   var W, H, DPR, pieces = [], lw = 6, off = null, OD = 1;
 
   function build() {
-    DPR = Math.min(window.devicePixelRatio || 1, innerWidth < 760 ? 1.25 : 1.5);
+    DPR = touch ? 1 : Math.min(window.devicePixelRatio || 1, 1.25);
     W = innerWidth; H = innerHeight;
     cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     var s = G.sprites(W, H, P, here.length * 131 + 7, DPR);
     pieces = s.pieces; lw = s.lw; off = s.canvas; OD = s.dpr;
+    if (touch) return;
     // glass-only mask so the cursor light falls on glass, not on the lead
     var m = document.createElement('canvas'); m.width = Math.round(W / 2); m.height = Math.round(H / 2);
     var g = m.getContext('2d'); g.scale(.5, .5); g.fillStyle = '#fff';
@@ -66,6 +68,7 @@
     glint.style.webkitMaskImage = url; glint.style.maskImage = url;
   }
   function makeGlow() {
+    if (touch) return;
     glow.width = Math.round(W / 3); glow.height = Math.round(H / 3);
     var g = glow.getContext('2d');
     if ('filter' in g) g.filter = 'blur(12px)';
@@ -176,15 +179,17 @@
   });
 
   /* ───────── light: follows the cursor, drifts on its own on touch screens ───────── */
-  var mx = innerWidth * .7, my = innerHeight * .3, tx = mx, ty = my, mouse = false;
-  addEventListener('pointermove', function (e) { if (e.pointerType === 'mouse') { mouse = true; tx = e.clientX; ty = e.clientY; } }, { passive: true });
-  (function loop(now) {
-    if (!mouse) { tx = innerWidth * (.55 + Math.sin(now / 5200) * .3); ty = innerHeight * (.4 + Math.cos(now / 6700) * .25); }
-    mx += (tx - mx) * .07; my += (ty - my) * .07;
+  var mx = innerWidth * .7, my = innerHeight * .3, tx = mx, ty = my, looping = false;
+  function lightLoop() {
+    mx += (tx - mx) * .08; my += (ty - my) * .08;
     glint.style.setProperty('--mx', mx.toFixed(1) + 'px');
     glint.style.setProperty('--my', my.toFixed(1) + 'px');
-    requestAnimationFrame(loop);
-  })(0);
+    if (Math.abs(tx - mx) > .5 || Math.abs(ty - my) > .5) requestAnimationFrame(lightLoop); else looping = false;
+  }
+  if (!touch) addEventListener('pointermove', function (e) {
+    tx = e.clientX; ty = e.clientY;
+    if (!looping) { looping = true; requestAnimationFrame(lightLoop); }
+  }, { passive: true });
   function dimFor(y) { root.style.setProperty('--dim', Math.min(.62, y / innerHeight * .75).toFixed(3)); }
   dimFor(0);
 
@@ -212,7 +217,7 @@
   if (HAS) {
     root.classList.add('motion');
     gsap.registerPlugin(ScrollTrigger);
-    if (window.Lenis) {
+    if (window.Lenis && !touch) {
       lenis = new Lenis({ duration: 1.4, easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); }, smoothWheel: true });
       lenis.on('scroll', ScrollTrigger.update);
       var barEl = document.querySelector('.bar');
@@ -257,14 +262,14 @@
     hero.querySelectorAll('[data-split]').forEach(function (el, i) {
       tl.to(split(el), { yPercent: 0, rotate: 0, duration: 1.9, ease: 'expo.out', stagger: .06 }, i * .14);
     });
-    tl.to(hero.querySelectorAll('[data-fade]'), { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 1.8, ease: 'power3.out', stagger: .12 }, .3);
+    tl.to(hero.querySelectorAll('[data-fade]'), { autoAlpha: 1, y: 0, duration: 1.8, ease: 'power3.out', stagger: .12 }, .3);
   }
 
   var PIN = {};
   if (HAS) {
     if (hero) {
       hero.querySelectorAll('[data-split]').forEach(function (el) { gsap.set(split(el), { yPercent: 115, rotate: 3 }); });
-      gsap.set(hero.querySelectorAll('[data-fade]'), { autoAlpha: 0, y: 34, filter: 'blur(12px)' });
+      gsap.set(hero.querySelectorAll('[data-fade]'), { autoAlpha: 0, y: 34 });
     }
     var outside = function (el) { return !hero || !hero.contains(el); };
     document.querySelectorAll('[data-split]').forEach(function (el) {
@@ -273,10 +278,10 @@
     });
     document.querySelectorAll('[data-fade]').forEach(function (el) {
       if (!outside(el)) return;
-      gsap.fromTo(el, { y: 44, autoAlpha: 0, filter: 'blur(12px)' }, { y: 0, autoAlpha: 1, filter: 'blur(0px)', duration: 1.8, ease: 'power3.out', delay: parseFloat(el.getAttribute('data-fade')) || 0, clearProps: 'filter', scrollTrigger: { trigger: el, start: 'top 88%' } });
+      gsap.fromTo(el, { y: 44, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.8, ease: 'power3.out', delay: parseFloat(el.getAttribute('data-fade')) || 0, clearProps: 'filter', scrollTrigger: { trigger: el, start: 'top 88%' } });
     });
     document.querySelectorAll('[data-stagger]').forEach(function (g) {
-      gsap.fromTo(g.children, { y: 80, autoAlpha: 0, filter: 'blur(10px)' }, { y: 0, autoAlpha: 1, filter: 'blur(0px)', duration: 1.9, ease: 'expo.out', stagger: .09, clearProps: 'opacity,visibility,transform,filter', scrollTrigger: { trigger: g, start: 'top 85%' } });
+      gsap.fromTo(g.children, { y: 80, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.9, ease: 'expo.out', stagger: .09, clearProps: 'opacity,visibility,transform,filter', scrollTrigger: { trigger: g, start: 'top 85%' } });
     });
     document.querySelectorAll('.scrub').forEach(function (el) {
       var words = split(el);
@@ -293,9 +298,9 @@
           bars.forEach(function (b, i) { b.classList.toggle('on', i <= k); });
         } } });
       steps.forEach(function (s, i) {
-        if (i > 0) tl.fromTo(s, { autoAlpha: 0, y: 60, filter: 'blur(12px)' }, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 1, ease: 'power2.out' });
+        if (i > 0) tl.fromTo(s, { autoAlpha: 0, y: 60 }, { autoAlpha: 1, y: 0, duration: 1, ease: 'power2.out' });
         tl.to({}, { duration: .9 });
-        if (i < steps.length - 1) tl.to(s, { autoAlpha: 0, y: -60, filter: 'blur(12px)', duration: 1, ease: 'power2.in' });
+        if (i < steps.length - 1) tl.to(s, { autoAlpha: 0, y: -60, duration: 1, ease: 'power2.in' });
       });
     };
     PIN['h'] = function (sec) {
@@ -306,14 +311,14 @@
     /* ── dramatic transitions ── */
     // hero drifts up and dissolves as you leave it
     if (hero) {
-      gsap.to(hero.querySelector('.wrap'), { yPercent: -18, autoAlpha: 0, filter: 'blur(14px)', scale: .96, ease: 'none',
+      gsap.to(hero.querySelector('.wrap'), { yPercent: -18, autoAlpha: 0, ease: 'none',
         scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom 15%', scrub: true } });
     }
     // chapter cards: a title cut out of the glass, then you fly through the letters
     PIN['chapter'] = function (sec) {
       var t = sec.querySelector('.chap-t'), k = sec.querySelectorAll('.chap-k'), bg = sec.querySelector('.chap-bg');
       var tl = gsap.timeline({ scrollTrigger: { trigger: sec, pin: true, start: 'top top', end: '+=170%', scrub: 1 } });
-      tl.fromTo(t, { scale: .7, autoAlpha: 0, letterSpacing: '.12em', filter: 'blur(14px)' }, { scale: 1, autoAlpha: 1, letterSpacing: '-.02em', filter: 'blur(0px)', duration: 1, ease: 'power2.out' })
+      tl.fromTo(t, { scale: .7, autoAlpha: 0, letterSpacing: '.12em' }, { scale: 1, autoAlpha: 1, letterSpacing: '-.02em', duration: 1, ease: 'power2.out' })
         .fromTo(k, { y: 30, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: .6, stagger: .15 }, '-=.4')
         .to({}, { duration: .5 })
         .to(k, { autoAlpha: 0, y: -20, duration: .4 })
@@ -324,8 +329,8 @@
     // vaults: the section opens up through a pointed arch
     document.querySelectorAll('.vault').forEach(function (sec) {
       var inner = sec.querySelector('.vault-in');
-      gsap.fromTo(inner, { clipPath: 'inset(38% 32% 0% 32% round 50% 50% 0% 0%)', filter: 'brightness(1.6)' },
-        { clipPath: 'inset(0% 0% 0% 0% round 0% 0% 0% 0%)', filter: 'brightness(1)', ease: 'none',
+      gsap.fromTo(inner, { clipPath: 'inset(38% 32% 0% 32% round 50% 50% 0% 0%)' },
+        { clipPath: 'inset(0% 0% 0% 0% round 0% 0% 0% 0%)', ease: 'none',
           scrollTrigger: { trigger: sec, start: 'top 95%', end: 'top 10%', scrub: 1 } });
     });
     // decks: each card slides over the last, which sinks back into the dark
@@ -333,7 +338,7 @@
       var cards = deck.querySelectorAll('.card');
       cards.forEach(function (c, i) {
         if (i === cards.length - 1) return;
-        gsap.to(c, { scale: .9, filter: 'brightness(.35) blur(2px)', ease: 'none',
+        gsap.to(c, { scale: .92, autoAlpha: .35, ease: 'none',
           scrollTrigger: { trigger: cards[i + 1], start: 'top bottom', end: 'top 14%', scrub: true } });
       });
     });
@@ -439,7 +444,7 @@
     out.querySelector('.go-word').textContent = w.textContent;
     out.querySelector('.go-mod').textContent = w.getAttribute('data-m') || '';
     out.querySelector('.go-note').textContent = w.getAttribute('data-g');
-    if (HAS) gsap.fromTo(out.querySelectorAll('.go-word, .go-mod, .go-note'), { y: 14, autoAlpha: 0, filter: 'blur(6px)' }, { y: 0, autoAlpha: 1, filter: 'blur(0px)', duration: .9, ease: 'expo.out', stagger: .06 });
+    if (HAS) gsap.fromTo(out.querySelectorAll('.go-word, .go-mod, .go-note'), { y: 14, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: .9, ease: 'expo.out', stagger: .06 });
   }
   document.querySelectorAll('[data-codex]').forEach(function (codex) {
     var leaves = Array.prototype.slice.call(codex.querySelectorAll('.leaves > .leaf')), cur = 0, busy = false;
@@ -461,8 +466,8 @@
       busy = true;
       b.classList.add('on');
       gsap.timeline({ onComplete: function () { a.classList.remove('on'); gsap.set([a, b], { clearProps: 'transform,opacity,visibility,filter' }); busy = false; } })
-        .to(a, { rotateY: dir * -100, autoAlpha: 0, transformOrigin: dir > 0 ? '0% 50%' : '100% 50%', filter: 'brightness(.6)', duration: .85, ease: 'power3.inOut' }, 0)
-        .fromTo(b, { autoAlpha: 0, x: dir * 40, filter: 'blur(6px)' }, { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: 1, ease: 'power3.out' }, .35);
+        .to(a, { rotateY: dir * -100, autoAlpha: 0, transformOrigin: dir > 0 ? '0% 50%' : '100% 50%', duration: .85, ease: 'power3.inOut' }, 0)
+        .fromTo(b, { autoAlpha: 0, x: dir * 40 }, { autoAlpha: 1, x: 0, duration: 1, ease: 'power3.out' }, .35);
       gloss(codex, b.querySelector('.w'));
     }
     prevB.addEventListener('click', function () { show(cur - 1); });
