@@ -57,13 +57,32 @@
   function at(c) { c.setTransform(T[0], 0, 0, T[0], T[1], T[2]); }
   function trace(c, p) { var q = p.q; c.beginPath(); c.moveTo(q[0], q[1]); for (var i = 2; i < q.length; i += 2) c.lineTo(q[i], q[i + 1]); c.closePath(); }
   function blit(c, p) {
+    if (p.sp) { c.drawImage(p.sp, p.x, p.y); return; }
     var x = Math.max(0, p.x), y = Math.max(0, p.y), w = Math.min(data.w, p.x + p.w) - x, h = Math.min(data.h, p.y + p.h) - y;
     if (w > 0 && h > 0) c.drawImage(im, x, y, w, h, x, y, w, h);
   }
+  /* a background piece that lies under a motif (star, bird, sun...) carries only its own visible glass */
+  function cutOut() {
+    var motifs = pieces.filter(function (p) { return p.m; });
+    if (!motifs.length) return;
+    pieces.forEach(function (p, i) {
+      // anything drawn later on top of this piece (motifs come after the background, in drawing order)
+      var over = motifs.filter(function (m) { return m.i > i && m.x < p.x + p.w && m.x + m.w > p.x && m.y < p.y + p.h && m.y + m.h > p.y; });
+      if (!over.length) return;
+      var c = document.createElement('canvas'); c.width = Math.max(1, p.w); c.height = Math.max(1, p.h);
+      var g = c.getContext('2d'); g.translate(-p.x, -p.y);
+      trace(g, p); g.clip(); g.drawImage(im, 0, 0);
+      g.globalCompositeOperation = 'destination-out';
+      over.forEach(function (m) { trace(g, m); g.fill(); });
+      p.sp = c;
+    });
+  }
   function stamp(p, erase) {
-    actx.save(); at(actx); trace(actx, p);
-    if (erase) { actx.clip(); actx.clearRect(p.x - 4, p.y - 4, p.w + 8, p.h + 8); }
-    else { actx.lineWidth = data.lw; actx.strokeStyle = '#121010'; actx.stroke(); actx.clip(); blit(actx, p); }
+    actx.save(); at(actx);
+    if (erase && p.sp) { actx.globalCompositeOperation = 'destination-out'; actx.drawImage(p.sp, p.x, p.y); }
+    else if (erase) { trace(actx, p); actx.clip(); actx.clearRect(p.x - 4, p.y - 4, p.w + 8, p.h + 8); }
+    else if (p.sp) { actx.drawImage(p.sp, p.x, p.y); }
+    else { trace(actx, p); actx.lineWidth = data.lw; actx.strokeStyle = '#121010'; actx.stroke(); actx.clip(); blit(actx, p); }
     actx.restore();
   }
   function moving(p, t) {
@@ -72,7 +91,8 @@
     ctx.globalAlpha = Math.min(1, t * 1.4);
     ctx.translate(p.cx, p.cy + (1 - e) * lift); ctx.rotate(p.rot * (1 - e));
     var k = .9 + .1 * e; ctx.scale(k, k); ctx.translate(-p.cx, -p.cy);
-    trace(ctx, p); ctx.lineWidth = data.lw; ctx.strokeStyle = '#121010'; ctx.stroke(); ctx.clip(); blit(ctx, p);
+    if (p.sp) blit(ctx, p);
+    else { trace(ctx, p); ctx.lineWidth = data.lw; ctx.strokeStyle = '#121010'; ctx.stroke(); ctx.clip(); blit(ctx, p); }
     ctx.restore();
   }
   function order(fx, fy) {
@@ -126,6 +146,9 @@
       var pad = data.lw;
       return { q: q, x: Math.floor(minx - pad), y: Math.floor(miny - pad), w: Math.ceil(maxx - minx + 2 * pad), h: Math.ceil(maxy - miny + 2 * pad), cx: cx / n, cy: cy / n, rot: (Math.random() - .5) * .14, j: Math.random() };
     });
+    pieces.forEach(function (p, i) { p.i = i; });
+    (data.m || []).forEach(function (i) { if (pieces[i]) pieces[i].m = true; });
+    cutOut();
     fit(); ready = true;
     if (reduce) { bg.classList.add('ready'); return; }
     var ok = arrive && arrive.p === here;
