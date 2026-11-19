@@ -21,9 +21,118 @@
   scrim.setAttribute('aria-hidden', 'true');
   document.body.insertBefore(scrim, document.body.firstChild);
   document.body.insertBefore(bg, document.body.firstChild);
-  var img = new Image();
-  img.onload = function () { bg.classList.add('ready'); };
-  img.src = 'img/glass-' + here + (innerWidth > innerHeight ? '-l' : '-p') + '.webp';
+  /* light through the glass: a slow sweep, and a soft glow that follows the mouse (transform-only, cheap) */
+  var sweep = document.createElement('div'); sweep.className = 'sweep'; sweep.setAttribute('aria-hidden', 'true');
+  document.body.insertBefore(sweep, scrim);
+  var fine = window.matchMedia && matchMedia('(pointer: fine)').matches;
+  if (fine && !reduce) {
+    var glow = document.createElement('div'); glow.className = 'glow'; glow.setAttribute('aria-hidden', 'true');
+    document.body.insertBefore(glow, scrim);
+    var gx = innerWidth * .7, gy = innerHeight * .35, tx = gx, ty = gy, gliding = false;
+    var glowLoop = function () {
+      gx += (tx - gx) * .09; gy += (ty - gy) * .09;
+      glow.style.transform = 'translate3d(' + gx.toFixed(1) + 'px,' + gy.toFixed(1) + 'px,0)';
+      if (Math.abs(tx - gx) > .4 || Math.abs(ty - gy) > .4) requestAnimationFrame(glowLoop); else gliding = false;
+    };
+    glow.style.transform = 'translate3d(' + gx + 'px,' + gy + 'px,0)';
+    addEventListener('pointermove', function (e) {
+      tx = e.clientX; ty = e.clientY;
+      if (!gliding) { gliding = true; requestAnimationFrame(glowLoop); }
+    }, { passive: true });
+  }
+
+  /* ── glass motion: the pre-rendered pieces are set in one by one, and lifted out when you leave ── */
+  var orient = innerWidth > innerHeight ? 'l' : 'p';
+  var base = 'img/glass-' + here + '-' + orient;
+  var cv = document.createElement('canvas'); cv.className = 'glass-cv'; cv.setAttribute('aria-hidden', 'true');
+  document.body.insertBefore(cv, bg.nextSibling);
+  var ctx = cv.getContext('2d'), acc = document.createElement('canvas'), actx = acc.getContext('2d');
+  var im = null, data = null, pieces = [], T = null, sc = 1, ready = false;
+  function fit() {
+    var d = 1, W = innerWidth, H = innerHeight;
+    cv.width = acc.width = Math.round(W * d); cv.height = acc.height = Math.round(H * d);
+    sc = Math.max(W / data.w, H / data.h);
+    T = [d * sc, d * (W - data.w * sc) / 2, d * (H - data.h * sc) / 2];
+  }
+  function at(c) { c.setTransform(T[0], 0, 0, T[0], T[1], T[2]); }
+  function trace(c, p) { var q = p.q; c.beginPath(); c.moveTo(q[0], q[1]); for (var i = 2; i < q.length; i += 2) c.lineTo(q[i], q[i + 1]); c.closePath(); }
+  function blit(c, p) {
+    var x = Math.max(0, p.x), y = Math.max(0, p.y), w = Math.min(data.w, p.x + p.w) - x, h = Math.min(data.h, p.y + p.h) - y;
+    if (w > 0 && h > 0) c.drawImage(im, x, y, w, h, x, y, w, h);
+  }
+  function stamp(p, erase) {
+    actx.save(); at(actx); trace(actx, p);
+    if (erase) { actx.clip(); actx.clearRect(p.x - 4, p.y - 4, p.w + 8, p.h + 8); }
+    else { actx.lineWidth = data.lw; actx.strokeStyle = '#121010'; actx.stroke(); actx.clip(); blit(actx, p); }
+    actx.restore();
+  }
+  function moving(p, t) {
+    var e = 1 - Math.pow(1 - t, 3), lift = 26 / sc;
+    ctx.save(); at(ctx);
+    ctx.globalAlpha = Math.min(1, t * 1.4);
+    ctx.translate(p.cx, p.cy + (1 - e) * lift); ctx.rotate(p.rot * (1 - e));
+    var k = .9 + .1 * e; ctx.scale(k, k); ctx.translate(-p.cx, -p.cy);
+    trace(ctx, p); ctx.lineWidth = data.lw; ctx.strokeStyle = '#121010'; ctx.stroke(); ctx.clip(); blit(ctx, p);
+    ctx.restore();
+  }
+  function order(fx, fy) {
+    var X = (fx * cv.width - T[1]) / T[0], Y = (fy * cv.height - T[2]) / T[0], far = 1;
+    pieces.forEach(function (p) { p.d = Math.hypot(p.cx - X, p.cy - Y); far = Math.max(far, p.d); });
+    pieces.forEach(function (p) { p.d /= far; });
+  }
+  function run(total, tOf, settled) {
+    var t0 = performance.now(), done = false;
+    return new Promise(function (resolve) {
+      function finish() { if (!done) { done = true; resolve(); } }
+      setTimeout(finish, (total + 2) * 1000);
+      (function frame(now) {
+        if (done) return;
+        var t = (now - t0) / 1000, i, p, k;
+        for (i = 0; i < pieces.length; i++) { p = pieces[i]; k = tOf(p, t); if (settled(k) && !p.s) { p.s = true; stamp(p, p.er); } }
+        ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); ctx.drawImage(acc, 0, 0);
+        for (i = 0; i < pieces.length; i++) { p = pieces[i]; k = tOf(p, t); if (k > 0 && k < 1) moving(p, k); }
+        if (t < total + .1) requestAnimationFrame(frame); else finish();
+      })(t0);
+    });
+  }
+  function assemble(fx, fy) {
+    var total = 1.7, spread = total * .75, each = total * .25;
+    order(fx, fy);
+    actx.setTransform(1, 0, 0, 1, 0, 0); actx.clearRect(0, 0, acc.width, acc.height);
+    pieces.forEach(function (p) { p.s = false; p.er = false; });
+    cv.classList.add('on');
+    return run(total, function (p, t) { return (t - p.d * spread - p.j * .12) / each; }, function (k) { return k >= 1; })
+      .then(function () { bg.classList.add('ready'); setTimeout(function () { cv.classList.remove('on'); }, 60); });
+  }
+  function disassemble(fx, fy) {
+    var total = .95, spread = total * .7, each = total * .3;
+    order(fx, fy);
+    actx.setTransform(1, 0, 0, 1, 0, 0); actx.clearRect(0, 0, acc.width, acc.height);
+    at(actx); actx.drawImage(im, 0, 0);
+    pieces.forEach(function (p) { p.s = false; p.er = true; });
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); ctx.drawImage(acc, 0, 0);
+    cv.classList.add('on'); bg.classList.add('gone');
+    return run(total, function (p, t) { return 1 - (t - p.d * spread - p.j * .1) / each; }, function (k) { return k < 1; });
+  }
+  var arrive = null;
+  try { arrive = JSON.parse(sessionStorage.getItem('arrive') || 'null'); sessionStorage.removeItem('arrive'); } catch (e) { arrive = null; }
+  Promise.all([
+    new Promise(function (res, rej) { var i = new Image(); i.onload = function () { im = i; res(); }; i.onerror = rej; i.src = base + '.webp'; }),
+    fetch(base + '.json').then(function (r) { return r.json(); }).then(function (j) { data = j; })
+  ]).then(function () {
+    pieces = data.p.map(function (q) {
+      var minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9, cx = 0, cy = 0, n = q.length / 2;
+      for (var i = 0; i < q.length; i += 2) { minx = Math.min(minx, q[i]); maxx = Math.max(maxx, q[i]); miny = Math.min(miny, q[i + 1]); maxy = Math.max(maxy, q[i + 1]); cx += q[i]; cy += q[i + 1]; }
+      var pad = data.lw;
+      return { q: q, x: Math.floor(minx - pad), y: Math.floor(miny - pad), w: Math.ceil(maxx - minx + 2 * pad), h: Math.ceil(maxy - miny + 2 * pad), cx: cx / n, cy: cy / n, rot: (Math.random() - .5) * .14, j: Math.random() };
+    });
+    fit(); ready = true;
+    if (reduce) { bg.classList.add('ready'); return; }
+    var ok = arrive && arrive.p === here;
+    return assemble(ok ? arrive.fx : .5, ok ? arrive.fy : .55);
+  }).catch(function () { bg.classList.add('ready'); });
+  var rz;
+  addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(function () { if (ready) fit(); }, 200); });
 
   /* darker behind the text once you start reading (one update per frame at most) */
   var ticking = false, bar = document.querySelector('.bar'), lastY = 0;
@@ -85,14 +194,17 @@
     titled.forEach(function (el) { ro.observe(el); });
   }
 
-  /* ── page change: a short fade ── */
+  /* ── page change: the glass is lifted out piece by piece from where you clicked ── */
   var leaving = false;
-  function go(href) {
+  function go(href, x, y) {
     if (leaving) return;
     leaving = true;
-    if (reduce) { location.href = href; return; }
+    var target = href.split('#')[0].replace('.html', '') || 'index';
+    var fx = x == null ? .5 : x / innerWidth, fy = y == null ? .5 : y / innerHeight;
+    try { sessionStorage.setItem('arrive', JSON.stringify({ p: target, fx: fx, fy: fy })); } catch (e) {}
+    if (reduce || !ready) { location.href = href; return; }
     document.body.classList.add('leaving');
-    setTimeout(function () { location.href = href; }, 320);
+    disassemble(fx, fy).then(function () { location.href = href; });
   }
   document.addEventListener('click', function (e) {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -100,9 +212,11 @@
     if (!a || a.target === '_blank') return;
     if (!/^[\w-]+\.html(#[\w-]+)?$/.test(a.getAttribute('href') || '')) return;
     e.preventDefault();
-    go(a.getAttribute('href'));
+    go(a.getAttribute('href'), e.clientX || null, e.clientY || null);
   });
-  addEventListener('pageshow', function (e) { if (e.persisted) { leaving = false; document.body.classList.remove('leaving'); } });
+  addEventListener('pageshow', function (e) {
+    if (e.persisted) { leaving = false; document.body.classList.remove('leaving'); bg.classList.remove('gone'); bg.classList.add('ready'); cv.classList.remove('on'); }
+  });
   document.addEventListener('keydown', function (e) {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     var t = e.target;

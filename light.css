@@ -5,8 +5,35 @@
   opacity: 0; transition: opacity .9s ease;
 }
 @media (orientation: portrait) { .glass-bg { background-image: var(--glass-p); } }
+.glass-bg { background-color: #0a0806; transition: none; }
 .glass-bg.ready { opacity: 1; }
+.glass-bg.gone { opacity: 0; }
 .glass-glow, .glint, .bars { display: none; }
+
+/* the canvas used only while pieces are moving */
+.glass-cv { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: 0; }
+.glass-cv.on { opacity: 1; }
+
+/* slow band of light sweeping across the glass (transform-only animation) */
+.sweep {
+  position: fixed; top: -20vh; bottom: -20vh; left: 0; width: 45vw; z-index: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgb(255 236 200 / .16) 45%, rgb(255 246 225 / .22) 50%, rgb(255 236 200 / .16) 55%, transparent);
+  mix-blend-mode: screen;
+  transform: translate3d(-60vw, 0, 0) skewX(-12deg);
+  animation: sweep 14s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes sweep { 0%, 15% { transform: translate3d(-60vw, 0, 0) skewX(-12deg); } 85%, 100% { transform: translate3d(130vw, 0, 0) skewX(-12deg); } }
+
+/* soft glow that follows the mouse */
+.glow {
+  position: fixed; left: 0; top: 0; width: 56vmax; height: 56vmax; margin: -28vmax 0 0 -28vmax; z-index: 0; pointer-events: none;
+  background: radial-gradient(closest-side, rgb(255 244 220 / .3), rgb(255 226 180 / .1) 50%, transparent);
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+body.leaving .sweep, body.leaving .glow { opacity: 0; transition: opacity .3s; }
+@media (prefers-reduced-motion: reduce) { .sweep { animation: none; display: none; } }
 
 /* reveals: opacity + transform only (cheap for every browser) */
 .js [data-fade], .js [data-split], .js [data-stagger] > * {
