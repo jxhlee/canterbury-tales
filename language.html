@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>III. 원문의 목소리 · 캔터베리로 가는 길</title>
+<script>try{if(sessionStorage.getItem('arrive'))document.documentElement.classList.add('arriving')}catch(e){}setTimeout(function(){document.documentElement.classList.remove('arriving')},4000);</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@400;500&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+KR:wght@300;400&display=swap">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="scenes.css">
+<link rel="stylesheet" href="flow.css">
+<style>
+  .eras { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; margin-top: 50px; }
+  @media (max-width: 760px) { .eras { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 30px; } }
+  .era { display: grid; gap: 4px; padding: 22px 16px 0 0; border-top: 1px solid var(--line); text-align: left; align-content: start; }
+  .era b { font-family: var(--serif); font-style: italic; font-weight: 300; font-size: 1.15rem; color: var(--dim); }
+  .era strong { font-family: var(--ko-serif); font-weight: 300; font-size: 1.25rem; }
+  .era span { font-size: .84rem; color: var(--dim); }
+  .era.here { border-top-color: var(--gold); }
+  .era.here b, .era.here strong { color: var(--gold); }
+
+  .pairs { width: 100%; max-width: 760px; border-collapse: collapse; }
+  .pairs th { font-family: var(--label); font-weight: 500; font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); text-align: left; padding: 0 0 14px; }
+  .pairs td { padding: 14px 0; border-top: 1px solid var(--line); font-family: var(--serif); font-size: clamp(1.2rem, 2.2vw, 1.6rem); }
+  .pairs td small { font-family: var(--ko); font-size: .8rem; color: var(--dim); margin-left: 8px; }
+  .pairs td:nth-child(2) { color: var(--gold); font-style: italic; }
+
+  .reading { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: start; width: 100%; margin-top: 40px; }
+  @media (max-width: 900px) { .reading { grid-template-columns: 1fr; } }
+  .codex { outline: none; touch-action: pan-y; user-select: none; }
+  .codex:focus-visible { box-shadow: 0 0 0 2px var(--gold), 0 0 90px -10px rgb(255 205 130 / .25); }
+  .leaves { display: grid; perspective: 1800px; }
+  .leaf { grid-area: 1 / 1; padding: clamp(26px, 4.5vw, 52px) clamp(22px, 4.5vw, 56px) clamp(30px, 4vw, 44px); visibility: hidden; opacity: 0; backface-visibility: hidden; min-width: 0; text-shadow: none; }
+  .leaf.on { visibility: visible; opacity: 1; }
+  .leaf header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 1px solid rgb(43 29 16 / .2); padding-bottom: 12px; }
+  .leaf .rub { font-family: 'IM Fell English', var(--serif); font-style: italic; color: #8f1a1f; font-size: 1.08rem; }
+  .leaf .what { font-family: var(--ko); font-size: .78rem; color: rgb(43 29 16 / .65); }
+  .leaf ol { list-style: none; margin: 0; padding: 0; }
+  .leaf li { position: relative; padding-left: 2.8em; font-family: 'IM Fell English', var(--serif); font-size: clamp(1.12rem, 2.1vw, 1.42rem); line-height: 2.05; color: #2b1d10; }
+  .leaf li::before { content: attr(data-n); position: absolute; left: 0; top: .6em; font-family: var(--label); font-size: .52em; color: rgb(43 29 16 / .45); font-variant-numeric: tabular-nums; }
+  .leaf li.gap { line-height: 1.2; color: rgb(43 29 16 / .4); }
+  .leaf .ini { font-size: 2.1em; line-height: 0; vertical-align: -.12em; color: #8f1a1f; }
+  .w { font: inherit; color: inherit; background: none; border: 0; padding: 0 2px; cursor: pointer; border-bottom: 1px solid rgb(143 26 31 / .55); transition: background .5s, color .5s; }
+  .w:hover { background: rgb(143 26 31 / .1); }
+  .w[aria-pressed="true"] { background: #8f1a1f; color: #f1e3c2; border-bottom-color: transparent; }
+  .w[aria-pressed="true"] .ini { color: #f1e3c2; }
+  .codex-nav { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 6px 2px; color: var(--dim); }
+  .codex-nav button { width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgb(236 226 205 / .25); background: none; color: var(--text); font-size: 1.1rem; cursor: pointer; transition: background .5s, border-color .5s, opacity .5s; }
+  .codex-nav button:hover:not(:disabled) { background: rgb(217 164 65 / .18); border-color: var(--gold); }
+  .codex-nav button:disabled { opacity: .25; cursor: default; }
+  .codex-dots { display: flex; gap: 8px; }
+  .codex-dots i { width: 7px; height: 7px; transform: rotate(45deg); background: rgb(236 226 205 / .22); transition: background .5s; }
+  .codex-dots i.on { background: var(--gold); }
+  .codex-count { font-family: var(--label); font-size: .74rem; letter-spacing: .1em; min-width: 3.5em; text-align: center; }
+  .gloss-out { display: grid; gap: 12px; position: sticky; top: 110px; min-width: 0; padding: 30px 28px; background: rgb(12 10 8 / .8); backdrop-filter: blur(6px); }
+  .go-word { font-family: 'IM Fell English', var(--serif); font-style: italic; font-size: clamp(2.2rem, 4.4vw, 3.3rem); line-height: 1.1; color: var(--gold); margin: 0; overflow-wrap: anywhere; }
+  .go-mod { font-family: var(--serif); font-size: 1.25rem; margin: 0; }
+  .go-note { margin: 0; color: var(--dim); font-size: .95rem; }
+  .hint { font-family: var(--label); font-size: .72rem; color: var(--dim); letter-spacing: .04em; margin: 0; border-top: 1px solid var(--line); padding-top: 14px; }
+  @media (max-width: 900px) { .gloss-out { position: static; } }
+
+  .sounds { width: 100%; max-width: 900px; border-collapse: collapse; }
+  .sounds th { font-family: var(--label); font-weight: 500; font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); text-align: left; padding: 0 14px 14px 0; white-space: nowrap; }
+  .sounds td { padding: 16px 14px 16px 0; border-top: 1px solid var(--line); vertical-align: baseline; white-space: nowrap; }
+  .sounds .m { font-family: 'IM Fell English', var(--serif); font-size: 1.5rem; }
+  .sounds code, .ipa { font-family: 'Charis SIL', 'Doulos SIL', 'Segoe UI', sans-serif; color: var(--gold); font-size: .98rem; }
+  .sounds .now { color: var(--dim); font-family: var(--serif); font-size: 1.2rem; }
+
+  .ages { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(24px, 4vw, 56px); width: 100%; margin-top: 46px; text-align: left; }
+  @media (max-width: 860px) { .ages { grid-template-columns: 1fr; } }
+  .age { display: grid; gap: 12px; align-content: start; border-top: 1px solid var(--line); padding-top: 24px; }
+  .age .yr { font-family: var(--serif); font-style: italic; color: var(--gold); font-size: 1.1rem; }
+  .age .m { font-family: 'IM Fell English', var(--serif); font-size: clamp(1.25rem, 2vw, 1.5rem); line-height: 1.5; margin: 0; }
+  .age .m u { text-decoration: none; color: var(--gold); }
+  .age p { margin: 0; color: var(--dim); font-size: .92rem; }
+  .age h3 { font-family: var(--ko-serif); font-weight: 400; font-size: 1.15rem; }
+
+  .slips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; width: 100%; margin-top: 46px; }
+  @media (max-width: 760px) { .slips { grid-template-columns: 1fr; } }
+  .flip { font: inherit; border: 0; cursor: pointer; text-align: left; padding: 0; background: none; perspective: 1000px; min-width: 0; }
+  .flip-in { display: grid; transition: transform 1.1s var(--ease); transform-style: preserve-3d; }
+  .flip[aria-pressed="true"] .flip-in { transform: rotateY(180deg); }
+  .face { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; padding: 26px 24px; display: grid; gap: 6px; align-content: start; min-height: 190px; text-shadow: none; }
+  .face.back { transform: rotateY(180deg); }
+  .face .m { font-size: 2.4rem; line-height: 1.1; }
+  .face small { font-family: var(--ko); font-size: .8rem; color: rgb(43 29 16 / .65); }
+  .face em { font-family: 'IM Fell English', var(--serif); font-size: 1rem; color: rgb(43 29 16 / .75); }
+  .face .then { font-family: var(--ko-serif); font-size: 1.15rem; color: #8f1a1f; }
+  .face p { margin: 0; font-size: .88rem; color: rgb(43 29 16 / .82); }
+</style>
+</head>
+<body>
+<header class="bar">
+  <a class="brand" href="index.html">The Canterbury Tales</a>
+  <nav aria-label="순례 경로">
+    <ul class="nav">
+      <li><a href="prologue.html"><i>I</i><span>타바드 여관</span></a></li>
+      <li><a href="meaning.html"><i>II</i><span>순례길</span></a></li>
+      <li><a href="language.html" aria-current="page"><i>III</i><span>원문의 목소리</span></a></li>
+      <li><a href="epilogue.html"><i>IV</i><span>영시의 소리</span></a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <section class="scene" data-hero data-title="600년 전 영어로 직접 읽기">
+    <div class="wrap duo">
+      <div class="stack">
+        <p class="num" data-fade>III.</p>
+        <p class="label" data-fade>The Original</p>
+        <h1 class="h1" data-split>600년 전 영어로 직접 읽기</h1>
+        <p class="p" data-fade>II장에서 초서가 '영어로 썼다'는 것이 왜 중요한지 보았습니다. 이 장에서는 그 영어를 직접 만납니다. 영어의 역사에서 어디쯤인지 확인하고, 원문을 읽고, 소리 내어 보고, 특징을 정리합니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene short" data-title="영어의 네 시대">
+    <div class="wrap">
+      <div class="panel stack">
+      <p class="label" data-fade>02 · 영어의 네 시대</p>
+      <p class="big scrub">초서의 영어는 고대 영어가 아니라 중세 영어입니다.</p>
+      <div class="eras">
+        <div class="era" data-fade><b>c. 450–1100</b><strong>고대 영어</strong><span>『베오울프』의 언어. 지금 보면 외국어에 가깝습니다</span></div>
+        <div class="era here" data-fade="0.1"><b>c. 1100–1500</b><strong>중세 영어</strong><span>초서는 여기. 프랑스어 어휘가 대거 들어옵니다</span></div>
+        <div class="era" data-fade="0.2"><b>c. 1500–1700</b><strong>초기 근대 영어</strong><span>셰익스피어의 언어</span></div>
+        <div class="era" data-fade="0.3"><b>1700–</b><strong>현대 영어</strong><span>사전과 인쇄로 철자가 굳어집니다</span></div>
+      </div>
+      <p class="bridge" data-fade>중세 영어가 그 이전과 크게 달라진 것은 1066년의 한 사건 때문입니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene" data-title="1066년 이후">
+    <div class="wrap duo panel">
+      <div class="stack">
+        <p class="label" data-fade>03 · 1066년 이후</p>
+        <h2 class="h2" data-split>식탁은 프랑스어, 들판은 영어</h2>
+        <p class="p" data-fade>1066년 노르만 정복 뒤 잉글랜드의 지배층은 프랑스어를 썼습니다. 가축을 기르는 농민은 영어로, 그 고기를 먹는 귀족은 프랑스어로 불렀지요. 그 흔적이 지금도 영어에 남아 있습니다.</p>
+        <p class="p" data-fade="0.15">14세기에 들어서야 영어가 다시 힘을 얻습니다. 초서가 글을 쓴 것이 바로 그때였고, 그가 쓴 런던의 영어는 훗날 표준 영어의 바탕이 됩니다.</p>
+        <p class="bridge" data-fade>이렇게 프랑스어가 섞인 영어로 쓴 원문을, 이제 직접 넘겨 봅니다.</p>
+      </div>
+      <div class="stack">
+        <table class="pairs" data-fade>
+          <thead><tr><th>들판의 동물 · 영어</th><th>식탁의 고기 · 프랑스어에서</th></tr></thead>
+          <tbody>
+            <tr><td>cow<small>소</small></td><td>beef<small>← bœuf</small></td></tr>
+            <tr><td>sheep<small>양</small></td><td>mutton<small>← mouton</small></td></tr>
+            <tr><td>swine<small>돼지</small></td><td>pork<small>← porc</small></td></tr>
+            <tr><td>calf<small>송아지</small></td><td>veal<small>← veel</small></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="vault" id="read" data-title="원문 읽기">
+    <div class="vault-in">
+    <div class="wrap stack">
+      <p class="label" data-fade>04 · 원문 읽기 · 여섯 장</p>
+      <h2 class="h2" data-split>밑줄 친 낱말을 눌러 보세요</h2>
+      <p class="p" data-fade>양쪽 화살표를 누르거나 좌우로 밀어서 넘겨요. 원문을 한 번 누른 뒤에는 키보드 ← → 로도 넘어갑니다.</p>
+      <div class="reading" data-fade>
+        <div class="codex leaded" data-codex tabindex="0" aria-label="원문 여섯 장, 좌우로 넘기기">
+          <div class="leaves">
+
+            <article class="leaf vellum">
+              <header><span class="rub">The General Prologue · 1–4</span><span class="what">작품의 첫 문장, 봄과 순례</span></header>
+              <ol>
+                <li data-n="1"><button type="button" class="w" data-m="When" data-g="'~할 때'. 지금의 when입니다. 뒤의 that은 뜻 없이 붙는 말이에요."><span class="ini">W</span>han</button> that Aprill with his <button type="button" class="w" data-m="showers" data-g="소나기들. 끝의 -es를 한 음절로 읽어 '슈-러스'처럼 소리 냅니다.">shoures</button> <button type="button" class="w" data-m="sweet" data-g="달콤한, 향긋한. 끝의 -e까지 읽어 '소-터'. 지금의 sweet과 같은 뿌리입니다.">soote</button></li>
+                <li data-n="2">The <button type="button" class="w" data-m="drought" data-g="가뭄. 3월의 메마른 땅을 4월의 비가 적신다는 뜻입니다.">droghte</button> of March hath <button type="button" class="w" data-m="pierced" data-g="꿰뚫었다. 비가 땅속 뿌리까지 스며든 모습입니다.">perced</button> to the <button type="button" class="w" data-m="root" data-g="뿌리. 이 행의 roote와 앞 행의 soote가 각운을 이룹니다.">roote</button>,</li>
+                <li data-n="3">And bathed every <button type="button" class="w" data-m="vein" data-g="(식물의) 관, 잎맥. 식물 속 물길을 사람의 핏줄처럼 불렀습니다.">veyne</button> in <button type="button" class="w" data-m="such" data-g="그러한. 지금의 such입니다.">swich</button> <button type="button" class="w" data-m="liquid, sap" data-g="물기, 수액. 프랑스어에서 온 말로 지금의 liquor와 뿌리가 같습니다.">licour</button></li>
+                <li data-n="4">Of which <button type="button" class="w" data-m="power" data-g="힘, 효능. 지금은 '미덕(virtue)'이지만, 그때는 무언가를 일으키는 힘을 뜻했습니다.">vertu</button> <button type="button" class="w" data-m="brought forth" data-g="생겨나게 하다. 그 힘으로 꽃이 피어난다는 뜻입니다.">engendred</button> is the <button type="button" class="w" data-m="flower" data-g="꽃. flour(밀가루)와 flower는 원래 같은 단어였습니다. 밀의 '가장 좋은 부분'이 밀가루였지요.">flour</button>;</li>
+              </ol>
+            </article>
+
+            <article class="leaf vellum">
+              <header><span class="rub">The General Prologue · 19–27</span><span class="what">타바드 여관에 모인 순례자들</span></header>
+              <ol>
+                <li data-n="19"><button type="button" class="w" data-m="It befell / It happened" data-g="'~한 일이 있었다'. 이야기를 시작할 때 쓰는 말로, 현대 영어 befall의 과거형입니다."><span class="ini">B</span>ifil</button> that in that <button type="button" class="w" data-m="season" data-g="계절. 여기서는 4월, 순례의 계절.">seson</button> on a day,</li>
+                <li data-n="20">In <button type="button" class="w" data-m="Southwark" data-g="런던 템스강 남쪽 동네. 캔터베리로 가는 길이 시작되는 곳이라 여관이 몰려 있었습니다.">Southwerk</button> at the <button type="button" class="w" data-m="the Tabard (inn)" data-g="타바드 여관. tabard는 기사가 갑옷 위에 입던 겉옷으로, 간판에서 이름을 땄습니다. 실제로 있던 여관입니다.">Tabard</button> as I <button type="button" class="w" data-m="lodged" data-g="'누워 있었다'가 아니라 '묵고 있었다'.">lay</button></li>
+                <li data-n="21">Redy to <button type="button" class="w" data-m="to go" data-g="가다. 지금 go의 과거형 went는 원래 이 wenden의 과거형이었습니다.">wenden</button> on my pilgrymage</li>
+                <li data-n="22">To Caunterbury with ful devout <button type="button" class="w" data-m="heart, spirit" data-g="마음. 프랑스어에서 온 말로 지금의 courage가 되었습니다.">corage</button>,</li>
+                <li data-n="23">At nyght was come into that <button type="button" class="w" data-m="inn" data-g="여관. hostel, hotel, hospital과 뿌리가 같습니다.">hostelrye</button></li>
+                <li data-n="24">Wel <button type="button" class="w" data-m="twenty-nine" data-g="스물아홉. '아홉하고 스물'처럼 일의 자리를 먼저 말했습니다. 지금의 독일어와 같은 방식입니다.">nyne and twenty</button> in a compaignye</li>
+                <li data-n="25">Of <button type="button" class="w" data-m="sundry, various" data-g="여러 가지의. 신분과 직업이 제각각인 순례자들.">sondry</button> folk, <button type="button" class="w" data-m="by chance fallen together" data-g="'우연히 함께하게 된'. yfalle은 fall의 과거분사로, 앞의 y-가 중세 영어의 표시입니다.">by aventure yfalle</button></li>
+                <li data-n="26">In <button type="button" class="w" data-m="fellowship" data-g="한 무리, 일행.">felaweshipe</button>, and pilgrimes were they alle,</li>
+                <li data-n="27">That toward Caunterbury <button type="button" class="w" data-m="would ride" data-g="'말을 타고 가려 했다'. 동사 끝 -en은 복수 주어를 나타냅니다.">wolden ryde</button>.</li>
+              </ol>
+            </article>
+
+            <article class="leaf vellum">
+              <header><span class="rub">The Knight · 43–46, 72</span><span class="what">가장 먼저 소개되는 순례자, 기사</span></header>
+              <ol>
+                <li data-n="43"><span class="ini">A</span> <button type="button" class="w" data-m="knight" data-g="기사. k와 gh를 모두 소리 내어 '크니히트'에 가깝게 읽었습니다. gh는 독일어 ich의 ch 같은 소리였어요.">Knyght</button> ther was, and that a <button type="button" class="w" data-m="worthy, distinguished" data-g="훌륭한, 존경받는.">worthy</button> man,</li>
+                <li data-n="44">That <button type="button" class="w" data-m="from" data-g="~부터. 지금의 from.">fro</button> the tyme that he first <button type="button" class="w" data-m="began" data-g="시작했다. 지금의 began.">bigan</button></li>
+                <li data-n="45">To <button type="button" class="w" data-m="ride out (on campaign)" data-g="원정을 떠나다. 기사로서 처음 싸움터에 나선 때를 말합니다.">riden out</button>, he loved <button type="button" class="w" data-m="chivalry" data-g="기사도. 프랑스어 chevalerie(말 탄 사람들)에서 왔습니다.">chivalrie</button>,</li>
+                <li data-n="46"><button type="button" class="w" data-m="fidelity, truth" data-g="신의, 한 말을 지키는 것. 지금의 truth와 뿌리가 같지만 '충실함'에 가깝습니다.">Trouthe</button> and honour, <button type="button" class="w" data-m="generosity" data-g="너그러움, 베풂. 지금의 freedom(자유)과 철자는 닮았지만 뜻이 달랐습니다.">fredom</button> and <button type="button" class="w" data-m="courtesy" data-g="예의, 궁정의 품위.">curteisie</button>.</li>
+                <li class="gap" data-n="">⋯</li>
+                <li data-n="72">He was a <button type="button" class="w" data-m="true, genuine" data-g="진정한. 지금의 very가 여기서 나왔습니다. 원래 '참된'이라는 뜻이었어요.">verray</button>, <button type="button" class="w" data-m="perfect" data-g="완벽한. 지금의 perfect.">parfit</button> <button type="button" class="w" data-m="noble" data-g="고귀한, 기품 있는. 지금의 gentle과 gentleman의 뿌리입니다.">gentil</button> knyght.</li>
+              </ol>
+            </article>
+
+            <article class="leaf vellum">
+              <header><span class="rub">The Clerk · 285–286, 307–308</span><span class="what">책만 아는 옥스퍼드의 가난한 학생</span></header>
+              <ol>
+                <li data-n="285"><span class="ini">A</span> <button type="button" class="w" data-m="clerk, scholar" data-g="학생, 학자. 성직을 준비하며 공부하는 사람을 가리켰습니다. 지금은 '사무원'이지요.">Clerk</button> ther was of <button type="button" class="w" data-m="Oxford" data-g="옥스퍼드. '소(oxen)가 건너는 여울(ford)'이라는 지명이 그대로 보입니다.">Oxenford</button> also,</li>
+                <li data-n="286">That unto <button type="button" class="w" data-m="logic" data-g="논리학. 중세 대학의 기초 과목이었습니다.">logyk</button> hadde longe <button type="button" class="w" data-m="gone (devoted himself)" data-g="'오래전부터 몸담아 왔다'. ygo는 go의 과거분사로, 앞에 y-가 붙었습니다.">ygo</button>.</li>
+                <li class="gap" data-n="">⋯</li>
+                <li data-n="307"><button type="button" class="w" data-m="tending toward, resounding with" data-g="'~으로 울리는, ~에 기운'. 그의 말은 늘 도덕적인 미덕을 향했다는 뜻입니다.">Sownynge</button> in moral vertu was his <button type="button" class="w" data-m="speech" data-g="말, 말씨.">speche</button>,</li>
+                <li data-n="308">And <button type="button" class="w" data-m="And gladly would he learn and gladly teach" data-g="'기꺼이 배우고 기꺼이 가르쳤다.' 이 작품에서 가장 자주 인용되는 구절 가운데 하나입니다.">gladly wolde he lerne and gladly teche</button>.</li>
+              </ol>
+            </article>
+
+            <article class="leaf vellum">
+              <header><span class="rub">The Wife of Bath · 445–446, 459–460</span><span class="what">다섯 번 결혼한 바스의 여장부</span></header>
+              <ol>
+                <li data-n="445"><span class="ini">A</span> good <button type="button" class="w" data-m="woman" data-g="여자. 결혼 여부와 상관없이 여성을 뜻했습니다. midwife에 옛 뜻이 남아 있지요.">Wif</button> was ther of <button type="button" class="w" data-m="near Bath" data-g="바스 근처. 바스는 잉글랜드 서쪽의 도시로, 당시 직물업으로 유명했습니다.">biside Bathe</button>,</li>
+                <li data-n="446">But she was <button type="button" class="w" data-m="somewhat" data-g="다소, 좀. some + deal(부분).">somdel</button> <button type="button" class="w" data-m="deaf" data-g="귀가 어두운. 지금의 deaf.">deef</button>, and that was <button type="button" class="w" data-m="a pity" data-g="안타까운 일. 지금의 scathe(해를 입히다)와는 뜻이 다릅니다.">scathe</button>.</li>
+                <li class="gap" data-n="">⋯</li>
+                <li data-n="459">She was a worthy womman al <button type="button" class="w" data-m="her life" data-g="평생. hir는 her, lyve는 life입니다.">hir lyve</button>:</li>
+                <li data-n="460">Housbondes at <button type="button" class="w" data-m="church door" data-g="교회 문. 중세의 결혼식은 교회 안이 아니라 교회 문 앞에서 올렸습니다.">chirche dore</button> she hadde <button type="button" class="w" data-m="five" data-g="다섯. 대모음 추이 이전이라 '피-버'에 가깝게 읽었습니다.">fyve</button>,</li>
+              </ol>
+            </article>
+
+            <article class="leaf vellum">
+              <header><span class="rub">The Miller's Prologue</span><span class="what">음담을 시작하기 전, 작가의 경고</span></header>
+              <ol>
+                <li data-n="·"><span class="ini">A</span>nd therfore, <button type="button" class="w" data-m="whoever wishes not" data-g="'누구든 ~하고 싶지 않다면'. list는 '바라다'라는 뜻의 옛 동사입니다.">whoso list it nat</button> <button type="button" class="w" data-m="hear" data-g="듣다. 동사 앞에도 y-가 붙곤 했습니다.">yheere</button>,</li>
+                <li data-n="·">Turne over the <button type="button" class="w" data-m="leaf (page)" data-g="책장. 지금도 turn over a new leaf(새 출발하다)라는 표현에 남아 있습니다.">leef</button> and <button type="button" class="w" data-m="choose" data-g="고르다. 지금의 choose.">chese</button> another tale;</li>
+                <li data-n="·">For he shal fynde <button type="button" class="w" data-m="enough" data-g="충분히 많이. 지금의 enough.">ynowe</button>, <button type="button" class="w" data-m="great and small" data-g="길고 짧은 것, 크고 작은 것.">grete and smale</button>,</li>
+                <li data-n="·">Of <button type="button" class="w" data-m="historical matter" data-g="역사 이야기, 실제 있었던 일을 담은 이야기.">storial thyng</button> that toucheth <button type="button" class="w" data-m="nobility" data-g="고귀함, 기품. gentil의 명사형입니다.">gentillesse</button>,</li>
+                <li data-n="·">And <button type="button" class="w" data-m="also" data-g="또한. 지금은 쓰지 않는 말입니다.">eek</button> moralitee and <button type="button" class="w" data-m="holiness" data-g="거룩함.">hoolynesse</button>.</li>
+              </ol>
+            </article>
+
+          </div>
+          <div class="codex-nav">
+            <button type="button" class="codex-prev" aria-label="이전 장">←</button>
+            <span class="codex-dots" aria-hidden="true"></span>
+            <span class="codex-count" aria-live="polite"></span>
+            <button type="button" class="codex-next" aria-label="다음 장">→</button>
+          </div>
+        </div>
+        <aside class="gloss-out leaded" id="gloss-out" aria-live="polite">
+          <p class="label">Glossarium</p>
+          <p class="go-word">Whan</p>
+          <p class="go-mod">When</p>
+          <p class="go-note">'~할 때'. 지금의 when입니다. 뒤의 that은 뜻 없이 붙는 말이에요.</p>
+          <p class="hint">숫자는 원문의 행 번호입니다. ⋯ 는 중간을 건너뛴 자리예요.</p>
+        </aside>
+      </div>
+      <p class="bridge" data-fade>눈으로 읽었다면, 이번에는 소리로. 초서 시대 사람들은 이 글을 어떻게 읽었을까요?</p>
+    </div>
+    </div>
+  </section>
+
+  <section class="scene" data-title="그때의 소리">
+    <div class="wrap stack panel">
+      <p class="label" data-fade>05 · 그때의 소리</p>
+      <h2 class="h2" data-split>그때는 이렇게 소리 났어요</h2>
+      <p class="p" data-fade>15세기부터 200년에 걸쳐 영어의 긴 모음이 통째로 자리를 옮깁니다. 이것을 '대모음 추이'라고 해요. 초서는 그 이전 사람이라, 철자가 거의 쓰인 대로 소리 났습니다.</p>
+      <div class="scroll-x" data-fade data-lenis-prevent>
+        <table class="sounds">
+          <thead><tr><th>중세 영어</th><th>그때의 소리</th><th>대략</th><th>지금</th></tr></thead>
+          <tbody>
+            <tr><td class="m">name</td><td><code>[naːmə]</code></td><td>나-머</td><td class="now">name [neɪm]</td></tr>
+            <tr><td class="m">fyve</td><td><code>[fiːvə]</code></td><td>피-버</td><td class="now">five [faɪv]</td></tr>
+            <tr><td class="m">hous</td><td><code>[huːs]</code></td><td>후-스</td><td class="now">house [haʊs]</td></tr>
+            <tr><td class="m">soote</td><td><code>[soːtə]</code></td><td>소-터</td><td class="now">sweet [swiːt]</td></tr>
+            <tr><td class="m">knyght</td><td><code>[kniçt]</code></td><td>크니히트</td><td class="now">knight [naɪt]</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="me sm" data-fade style="margin-top:30px">Whan that Aprill with his shoures soote</p>
+      <p class="gloss" data-fade><span class="ipa">[ʍan θat aˈpril wiθ his ˈʃuːrəs ˈsoːtə]</span> · 대략 "환 쌋 아프릴 위쓰 히스 슈-러스 소-터"</p>
+      <p class="bridge" data-fade>소리 내어 읽으며 눈에 띈 중세 영어의 특징을 여섯 가지로 정리해 봅니다.</p>
+    </div>
+  </section>
+
+  <section class="scene" data-steps data-title="중세 영어의 여섯 버릇">
+    <div class="wrap panel">
+      <div class="steps-stage">
+        <div class="step"><p class="label">06 · 중세 영어의 여섯 버릇</p><p class="big">중세 영어의<br>여섯 가지 버릇</p></div>
+        <div class="step"><p class="me">soote → "소-터"</p><p class="h3">끝의 -e도 소리 낸다</p><p class="p">지금은 묵음인 끝 -e를 한 음절로 읽어야 박자가 맞습니다.</p></div>
+        <div class="step"><p class="me">knyght → "크니히트"</p><p class="h3">묵음이 없다</p><p class="p">knight의 k도, gh도 모두 소리 냈습니다. 지금의 묵음 글자는 그때 소리의 흔적입니다.</p></div>
+        <div class="step"><p class="me">yfalle · ygo · yheere</p><p class="h3">과거분사 앞의 y-</p><p class="p">fallen, gone 앞에 y-를 붙였습니다. 독일어 과거분사의 ge-와 같은 뿌리입니다.</p></div>
+        <div class="step"><p class="me">He nevere yet no vileynye ne sayde<br>In al his lyf unto no maner wight.</p><p class="h3">부정을 겹칠수록 더 강하게</p><p class="p">기사를 소개하는 대목. 부정어를 네 번 겹쳐 '정말 단 한 번도'를 강조합니다.</p></div>
+        <div class="step"><p class="me">Caunterbury · Aprill · compaignye</p><p class="h3">철자는 들리는 대로</p><p class="p">사전도 인쇄술도 없던 시대. 같은 단어가 필사본마다 다르게 적혔습니다.</p></div>
+        <div class="step"><p class="me">corage · aventure · vertu</p><p class="h3">프랑스어가 섞인 영어</p><p class="p">노르만 정복 이후 들어온 낱말들. 오늘날 영어의 풍부한 어휘가 여기서 시작됩니다.</p></div>
+      </div>
+      <div class="progress" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+  </section>
+
+
+  <section class="scene" data-title="뜻이 바뀐 낱말">
+    <div class="wrap stack panel">
+      <p class="label" data-fade>07 · 뜻이 바뀐 낱말</p>
+      <h2 class="h2" data-split>그때는 칭찬, 지금은 놀림?</h2>
+      <p class="p" data-fade>쪽지를 누르면 뒤집혀 그때의 뜻이 나옵니다.</p>
+      <div class="slips" data-stagger>
+        <button type="button" class="flip" aria-pressed="false"><span class="flip-in">
+          <span class="face front vellum"><span class="m">nyce</span><small>지금의 nice</small></span>
+          <span class="face back vellum"><span class="then">그때: 어리석은, 순진한</span><p>지금은 '좋은'. 라틴어 nescius(알지 못하는)에서 왔습니다.</p></span></span></button>
+        <button type="button" class="flip" aria-pressed="false"><span class="flip-in">
+          <span class="face front vellum"><span class="m">sely</span><em>"This sely carpenter"</em><small>지금의 silly</small></span>
+          <span class="face back vellum"><span class="then">그때: 복된, 순박한, 가엾은</span><p>지금은 '바보 같은'. 방앗간 주인의 이야기에서 속는 목수를 부르는 말입니다.</p></span></span></button>
+        <button type="button" class="flip" aria-pressed="false"><span class="flip-in">
+          <span class="face front vellum"><span class="m">girles</span><em>"The yonge girles of the diocise"</em><small>지금의 girl</small></span>
+          <span class="face back vellum"><span class="then">그때: 젊은이 (남녀 모두)</span><p>지금은 '소녀'. 소환리를 소개하며 교구의 젊은이들을 가리킨 말입니다.</p></span></span></button>
+        <button type="button" class="flip" aria-pressed="false"><span class="flip-in">
+          <span class="face front vellum"><span class="m">lewed</span><em>"No wonder is a lewed man to ruste"</em><small>지금의 lewd</small></span>
+          <span class="face back vellum"><span class="then">그때: 배우지 못한, 평신도의</span><p>지금은 '음란한'. 성직자가 타락하면 평신도가 녹스는 것도 당연하다는 본당 신부의 말.</p></span></span></button>
+        <button type="button" class="flip" aria-pressed="false"><span class="flip-in">
+          <span class="face front vellum"><span class="m">verray</span><em>"a verray, parfit gentil knyght"</em><small>지금의 very</small></span>
+          <span class="face back vellum"><span class="then">그때: 참된, 진정한</span><p>지금은 '매우'. '참된 기사'를 꾸미던 말이 강조어가 되었습니다.</p></span></span></button>
+        <button type="button" class="flip" aria-pressed="false"><span class="flip-in">
+          <span class="face front vellum"><span class="m">knave</span><small>지금의 knave</small></span>
+          <span class="face back vellum"><span class="then">그때: 사내아이, 하인</span><p>지금은 '악당'. 초서는 '사내아이'라는 뜻으로 knave child라고 썼습니다.</p></span></span></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene short" data-title="다음 정거장">
+    <div class="wrap stack center">
+      <p class="bridge" data-fade style="margin-top:0">소리 내어 읽다 보면 일정한 박자가 느껴집니다. 그 박자와 행 끝의 울림이 바로 영시입니다.</p>
+      <a class="next" href="epilogue.html" rel="next" style="margin-top:40px">
+        <span class="label">Last Station · IV</span>
+        <span class="display">The <em>Verse</em></span>
+        <span class="p">영시의 소리</span>
+      </a>
+      <a class="prevlink" href="meaning.html" rel="prev">← II. 순례길의 의미</a>
+    </div>
+  </section>
+</main>
+
+<footer class="foot"><span>2학년 매체와 언어생활 탐구 · 세계문학, 새로운 매체로 만나다</span><span>← → 키로도 이동해요</span></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="glass.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
