@@ -1,8 +1,8 @@
 /* reading comfort, iron bars, section rail, bridges, the book of tales */
 .scrim {
   background:
-    linear-gradient(90deg, rgb(5 4 3 / .6) 0%, rgb(5 4 3 / .32) 40%, rgb(5 4 3 / 0) 75%),
-    radial-gradient(ellipse at 50% 50%, transparent 55%, rgb(0 0 0 / .5) 100%);
+    linear-gradient(90deg, rgb(5 4 3 / .58) 0%, rgb(5 4 3 / .28) 38%, rgb(5 4 3 / 0) 65%),
+    radial-gradient(ellipse at 50% 50%, transparent 60%, rgb(0 0 0 / .28) 100%);
   background-color: rgb(5 4 3 / var(--dim));
 }
 /* iron saddle bars that hold a real window together */
